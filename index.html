@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Big Screen Energy</title>
+  <title>bigscreenenergy</title></title>
   <style>
-    /* Hide elements by default */
+    /* Hide specified elements by default */
     #docs-chrome,
     div[role="navigation"],
     div[id*="-row-headers-background"],
-    div[id*="-column-headers-background"] {
+    div[id*="-column-headers-background"],
+    iframe#core-js-error-dialog {
       display: none;
     }
   </style>
@@ -21,7 +22,7 @@
         type: "GET",
         dataType: "html",
         success: function(data) {
-          // Append the fetched content to a container
+          // Append the fetched content into the container
           $("#sheet-data").html(data);
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -33,7 +34,7 @@
   </script>
 </head>
 <body>
-  <h1>Dave Drafts the Big Screen</h1>
+  <h1>Dave Drafts: Summer Blockbusters Edition</h1>
   <div id="sheet-data">
     <p>Loading data, please wait...</p>
   </div>
