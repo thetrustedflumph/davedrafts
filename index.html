@@ -64,12 +64,13 @@
         success: function(data) {
           // Create a temporary container for the fetched HTML
           var $content = $("<div>").html(data);
-          // Remove any <script> tags to prevent redirection code from running
+          // Remove any <script> and <meta> tags to prevent redirection or meta property import
           $content.find("script").remove();
+          $content.find("meta").remove();
           // Insert the filtered HTML into the page
           $("#sheet-data").html($content.html());
           
-          // Process the table with class 'waffle' to freeze rows above the marker row
+          // Process tables with the class 'waffle' for freezing header rows
           $("table.waffle tbody").each(function(){
             var $tbody = $(this);
             // Find the first row that contains a <th> with the specific classes
@@ -78,8 +79,9 @@
             }).first();
             
             if ($markerRow.length) {
-              // Get all rows preceding the marker row (reverse order fixed to document order)
+              // Select all rows preceding the marker row. The use of .prevAll() provides them in reverse order so we reverse the order to preserve document order.
               var $stickyRows = $markerRow.prevAll().get().reverse();
+              // Compute cumulative offset to stack each sticky row below the previous one.
               var cumulativeOffset = 0;
               $($stickyRows).each(function(){
                 $(this).addClass("sticky-row").css({
