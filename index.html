@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <title>bigscreenenergy</title>
   <style>
-    /* Hide specified elements by default */
+    /* Force hidden display on specified elements, overriding other styles */
     #docs-chrome,
     div[role="navigation"],
     div[id*="-row-headers-background"],
     div[id*="-column-headers-background"],
     iframe#core-js-error-dialog,
-    div[id*="core-js-error-dialog-overlay"] {
-      display: none;
+    div#core-js-error-dialog-overlay {
+      display: none !important;
     }
   </style>
   <!-- Include jQuery from a CDN -->
@@ -23,7 +23,7 @@
         type: "GET",
         dataType: "html",
         success: function(data) {
-          // Append the fetched content into the container
+          // Insert the retrieved data into the sheet-data container
           $("#sheet-data").html(data);
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -36,7 +36,7 @@
 </head>
 <body>
   <div id="sheet-data">
-    <p>Loading, please wait...</p>
+    <p>Loading data, please wait...</p>
   </div>
 </body>
 </html>
