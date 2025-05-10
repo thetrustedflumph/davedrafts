@@ -26,18 +26,19 @@
   
   <!-- Include jQuery from a CDN -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Prevent JavaScript redirection attempts -->
   <script>
-    // Prevent any JavaScript redirects by overriding redirection methods.
     (function() {
       const noop = function(url) {
         console.log("Redirect prevented to:", url);
       };
-      // Override the common redirection methods.
-      window.location.assign   = noop;
-      window.location.replace  = noop;
-      window.location.reload   = noop;
+      // Override common redirection methods
+      window.location.assign  = noop;
+      window.location.replace = noop;
+      window.location.reload  = noop;
       
-      // Attempt to override directly setting window.location (if possible)
+      // Try to override setting window.location directly
       try {
         Object.defineProperty(window, "location", {
           configurable: true,
@@ -53,6 +54,7 @@
     })();
   </script>
   
+  <!-- AJAX load and post-processing -->
   <script>
     $(document).ready(function(){
       $.ajax({
@@ -60,21 +62,24 @@
         type: "GET",
         dataType: "html",
         success: function(data) {
-          // Insert the fetched content into the container
-          $("#sheet-data").html(data);
+          // Create a temporary container for the fetched HTML
+          var $content = $("<div>").html(data);
+          // Remove any <script> tags to prevent redirection code from running
+          $content.find("script").remove();
+          // Insert the filtered HTML into the page
+          $("#sheet-data").html($content.html());
           
-          // Locate each table with class 'waffle' in the loaded content
+          // Process the table with class 'waffle' to freeze rows above the marker row
           $("table.waffle tbody").each(function(){
             var $tbody = $(this);
-            // Find the first row that contains a th element with the specific classes.
+            // Find the first row that contains a <th> with the specific classes
             var $markerRow = $tbody.find("tr").filter(function(){
               return $(this).find("th.freezebar-cell.freezebar-horizontal-handle").length > 0;
             }).first();
             
             if ($markerRow.length) {
-              // Select all rows preceding the marker row.
+              // Get all rows preceding the marker row (reverse order fixed to document order)
               var $stickyRows = $markerRow.prevAll().get().reverse();
-              // Compute cumulative offset to stack each sticky row below the previous one.
               var cumulativeOffset = 0;
               $($stickyRows).each(function(){
                 $(this).addClass("sticky-row").css({
