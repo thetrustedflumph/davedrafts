@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Mobile-friendly viewport tag -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Sheet Data via gviz</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+      background: #fafafa;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      border-radius: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 400px;
+      margin: 0 auto;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    @media (max-width: 600px) {
+      table, th, td {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="table-container" id="table-container">
+    Loading sheet content...
+  </div>
+
+  <script>
+    // Your Google Sheet ID extracted from the provided edit URL.
+    const sheetId = '19jg_ZMehXnoGWQj-yDOyXTw3uAOiGBw5GOZnx7lE3JE';
+    // Construct the gviz URL to retrieve data in JSONP format.
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+    // Define proxy URLs.
+    const allOriginsUrl =
+      'https://api.allorigins.hexocode.repl.co/get?disableCache=true&url=' +
+      encodeURIComponent(gvizUrl);
+    const thingProxyUrl = 'https://thingproxy.freeboard.io/fetch/' + gvizUrl;
+
+    // Function that returns a promise resolving to the fetched text.
+    function fetchViaProxy(proxyUrl) {
+      return fetch(proxyUrl).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        return response.text();
+      });
+    }
+
+    // Try fetching using AllOrigins first, then fallback to ThingProxy if needed.
+    fetchViaProxy(allOriginsUrl)
+      .catch(error => {
+        console.warn("AllOrigins failed, trying ThingProxy:", error);
+        return fetchViaProxy(thingProxyUrl);
+      })
+      .then(text => {
+        console.log("Fetched response text:", text);
+        // Extract JSON from the JSONP wrapper.
+        const jsonStart = text.indexOf('(');
+        const jsonEnd = text.lastIndexOf(')');
+        if (jsonStart === -1 || jsonEnd === -1) {
+          throw new Error("Unexpected response format: JSONP wrapper not found.");
+        }
+        const jsonString = text.substring(jsonStart + 1, jsonEnd);
+        const jsonData = JSON.parse(jsonString);
+
+        // Build an HTML table from the parsed JSON data.
+        const tableData = jsonData.table;
+        let html = '<table><thead><tr>';
+        tableData.cols.forEach(col => {
+          html += `<th>${col.label || ''}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+        tableData.rows.forEach(row => {
+          html += '<tr>';
+          row.c.forEach(cell => {
+            html += `<td>${cell && cell.v !== null ? cell.v : ''}</td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+
+        document.getElementById('table-container').innerHTML = html;
+      })
+      .catch(error => {
+        console.error("Error fetching or processing the sheet:", error);
+        document.getElementById('table-container').textContent =
+          "Error loading sheet content: " + error.message;
+      });
+  </script>
+</body>
+</html>
