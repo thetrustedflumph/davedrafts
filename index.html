@@ -22,6 +22,13 @@
       background: white;
       z-index: 2; /* Ensure they appear above scrolling content */
     }
+    
+    /* On mobile devices, force child div of #sheets-viewport to display: block */
+    @media only screen and (max-width: 768px) {
+      #sheets-viewport > div {
+        display: block !important;
+      }
+    }
   </style>
   
   <!-- Include jQuery from a CDN -->
@@ -64,7 +71,7 @@
         success: function(data) {
           // Create a temporary container for the fetched HTML
           var $content = $("<div>").html(data);
-          // Remove any <script> and <meta> tags to prevent redirection or meta property import
+          // Remove any <script> and <meta> tags to prevent redirection and meta property import
           $content.find("script").remove();
           $content.find("meta").remove();
           // Insert the filtered HTML into the page
@@ -79,7 +86,8 @@
             }).first();
             
             if ($markerRow.length) {
-              // Select all rows preceding the marker row. The use of .prevAll() provides them in reverse order so we reverse the order to preserve document order.
+              // Select all rows preceding the marker row. .prevAll() returns them in reverse order 
+              // so we reverse the array to maintain document order.
               var $stickyRows = $markerRow.prevAll().get().reverse();
               // Compute cumulative offset to stack each sticky row below the previous one.
               var cumulativeOffset = 0;
