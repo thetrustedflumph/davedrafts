@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>bigscreenenergy</title>
   <style>
-    /* Force hidden display on specified elements, overriding other styles */
+    /* Force hidden display on specified elements, overriding default styles */
     #docs-chrome,
     div[role="navigation"],
     div[id*="-row-headers-background"],
@@ -12,6 +12,13 @@
     iframe#core-js-error-dialog,
     div#core-js-error-dialog-overlay {
       display: none !important;
+    }
+    
+    /* Basic sticky row styling – additional top offsets are set dynamically */
+    table.waffle tbody tr.sticky-row {
+      position: sticky !important;
+      background: white;
+      z-index: 2; /* Ensure they appear above the scrollable content */
     }
   </style>
   <!-- Include jQuery from a CDN -->
@@ -23,8 +30,36 @@
         type: "GET",
         dataType: "html",
         success: function(data) {
-          // Insert the retrieved data into the sheet-data container
+          // Insert the fetched content into the container
           $("#sheet-data").html(data);
+          
+          // Look for table(s) with the class 'waffle' inside the loaded content
+          $("table.waffle tbody").each(function(){
+            var $tbody = $(this);
+            // Find the first row that contains a th with the specified classes
+            var $markerRow = $tbody.find("tr").filter(function(){
+              return $(this).find("th.freezebar-cell.freezebar-horizontal-handle").length > 0;
+            }).first();
+            
+            if ($markerRow.length) {
+              // Select all rows preceding the marker row. 
+              // .prevAll() returns them in reverse order so we reverse the array to maintain document order.
+              var $stickyRows = $markerRow.prevAll().get().reverse();
+              // Compute cumulative offset so that each sticky row is positioned below the previous one.
+              var cumulativeOffset = 0;
+              $($stickyRows).each(function(){
+                // Add a class & inline style so that it becomes sticky
+                $(this).addClass("sticky-row").css({
+                  position: "sticky",
+                  top: cumulativeOffset + "px",
+                  "z-index": 2,
+                  background: "white"
+                });
+                // Increase offset by the row's outer height; adjust as needed if your rows are not uniform
+                cumulativeOffset += $(this).outerHeight();
+              });
+            }
+          });
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.error("Error loading Google Sheets data:", textStatus, errorThrown);
@@ -36,7 +71,7 @@
 </head>
 <body>
   <div id="sheet-data">
-    <p>Loading, please wait...</p>
+    <p>Coming soon, to a theatre near you...</p>
   </div>
 </body>
 </html>
