@@ -12,8 +12,14 @@
     iframe#core-js-error-dialog,
     div#core-js-error-dialog-overlay,
     thead,
-    th {
+    th,
+    #top-bar {
       display: none !important;
+    }
+    
+    /* Force child div of #sheets-viewport to display: block on all devices */
+    #sheets-viewport > div {
+      display: block !important;
     }
     
     /* Basic sticky row styling – additional top offsets are set dynamically */
@@ -21,13 +27,6 @@
       position: sticky !important;
       background: white;
       z-index: 2; /* Ensure they appear above scrolling content */
-    }
-    
-    /* On mobile devices, force child div of #sheets-viewport to display: block */
-    @media only screen and (max-width: 768px) {
-      #sheets-viewport > div {
-        display: block !important;
-      }
     }
   </style>
   
@@ -72,24 +71,22 @@
           // Create a temporary container for the fetched HTML
           var $content = $("<div>").html(data);
           // Remove any <script> and <meta> tags to prevent redirection and meta property import
-          $content.find("script").remove();
-          $content.find("meta").remove();
+          $content.find("script, meta").remove();
           // Insert the filtered HTML into the page
           $("#sheet-data").html($content.html());
           
           // Process tables with the class 'waffle' for freezing header rows
           $("table.waffle tbody").each(function(){
             var $tbody = $(this);
-            // Find the first row that contains a <th> with the specific classes
+            // Find the first row containing a <th> with the specified classes
             var $markerRow = $tbody.find("tr").filter(function(){
               return $(this).find("th.freezebar-cell.freezebar-horizontal-handle").length > 0;
             }).first();
             
             if ($markerRow.length) {
-              // Select all rows preceding the marker row. .prevAll() returns them in reverse order 
-              // so we reverse the array to maintain document order.
+              // Select all rows preceding the marker row (reverse order fixed to document order)
               var $stickyRows = $markerRow.prevAll().get().reverse();
-              // Compute cumulative offset to stack each sticky row below the previous one.
+              // Compute cumulative offset so that each sticky row is positioned below the previous one.
               var cumulativeOffset = 0;
               $($stickyRows).each(function(){
                 $(this).addClass("sticky-row").css({
